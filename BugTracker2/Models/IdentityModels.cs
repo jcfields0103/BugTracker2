@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,6 +15,14 @@ namespace BugTracker2.Models
         public string LastName { get; set; }
         public string DisplayName { get; set; }
         public string AvatarUrl { get; set; }
+        [NotMapped]
+        public string FullName
+        {
+            get
+            {
+                return $"{LastName}, {FirstName}";
+            }
+        }
 
         //nav
         public virtual ICollection<Project> Projects { get; set; }

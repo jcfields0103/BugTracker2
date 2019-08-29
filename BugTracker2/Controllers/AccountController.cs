@@ -9,6 +9,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using BugTracker2.Models;
+using System.Web.Configuration;
+using BugTracker2.Helpers;
+using System.IO;
 
 namespace BugTracker2.Controllers
 {
@@ -87,7 +90,7 @@ namespace BugTracker2.Controllers
                 case SignInStatus.Failure:
                 default:
                     ModelState.AddModelError("", "Invalid login attempt.");
-                    return View(model);
+                    return RedirectToAction("Login", "Home");
             }
         }
 
@@ -151,7 +154,21 @@ namespace BugTracker2.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    DisplayName = model.DisplayName,
+                    UserName = model.Email,
+                    Email = model.Email,
+                    AvatarUrl = WebConfigurationManager.AppSettings["DefaultAvatar"]
+                };
+                if (ImageHelper.IsWebFriendlyImage(model.Avatar))
+                {
+                    var fileName = Path.GetFileName(model.Avatar.FileName);
+                    model.Avatar.SaveAs(Path.Combine(Server.MapPath("~/Avatars/"), fileName));
+                    user.AvatarUrl = "/Avatars/" + fileName;
+                }
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {

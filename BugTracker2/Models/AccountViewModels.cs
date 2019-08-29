@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Web;
 
 namespace BugTracker2.Models
 {
@@ -68,7 +69,18 @@ namespace BugTracker2.Models
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
-
+        [Required]
+        [StringLength(40, ErrorMessage ="The {0} must be at least {1} character long.", MinimumLength =1)]
+        public string FirstName { get; set; }
+        [Required]
+        [StringLength(40, ErrorMessage = "The {0} must be at least {1} character long.", MinimumLength = 1)]
+        public string LastName { get; set; }
+        [Required]
+        [StringLength(40, ErrorMessage = "The {0} must be at least {1} character long.", MinimumLength = 1)]
+        public string DisplayName { get; set; }
+        [Display(Name ="Avatar Path")]
+        public string AvatarUrl { get; set; }
+        public HttpPostedFileBase Avatar { get; set; }
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
         [DataType(DataType.Password)]

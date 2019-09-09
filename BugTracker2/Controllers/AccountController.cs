@@ -12,6 +12,7 @@ using BugTracker2.Models;
 using System.Web.Configuration;
 using BugTracker2.Helpers;
 using System.IO;
+using System.Net.Mail;
 
 namespace BugTracker2.Controllers
 {
@@ -20,9 +21,11 @@ namespace BugTracker2.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private ApplicationDbContext db = new ApplicationDbContext();
 
         public AccountController()
         {
+
         }
 
         public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
@@ -61,7 +64,7 @@ namespace BugTracker2.Controllers
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
-            return View();
+            return RedirectToAction("Login","Home");
         }
 
         //
@@ -93,56 +96,34 @@ namespace BugTracker2.Controllers
                     return RedirectToAction("Login", "Home");
             }
         }
-
-        //
-        // GET: /Account/VerifyCode
+        // Demo Login
         [AllowAnonymous]
-        public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
-        {
-            // Require that the user has already logged in via username/password or external login
-            if (!await SignInManager.HasBeenVerifiedAsync())
-            {
-                return View("Error");
-            }
-            return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }
-
-        //
-        // POST: /Account/VerifyCode
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> VerifyCode(VerifyCodeViewModel model)
+        public async Task<ActionResult> DemoLoginAsync(string demoEmail)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            var email = WebConfigurationManager.AppSettings[demoEmail];
+            var password = WebConfigurationManager.AppSettings["DemoUserPassword"];
+            var result = await SignInManager.PasswordSignInAsync(email, password, false, shouldLockout: false);
 
-            // The following code protects for brute force attacks against the two factor codes. 
-            // If a user enters incorrect codes for a specified amount of time then the user account 
-            // will be locked out for a specified amount of time. 
-            // You can configure the account lockout settings in IdentityConfig
-            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:  model.RememberMe, rememberBrowser: model.RememberBrowser);
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToLocal(model.ReturnUrl);
-                case SignInStatus.LockedOut:
-                    return View("Lockout");
+                    return RedirectToAction("Index", "Home");
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Invalid code.");
-                    return View(model);
+                    return RedirectToAction("Login", "Home");
             }
         }
+
+      
 
         //
         // GET: /Account/Register
         [AllowAnonymous]
         public ActionResult Register()
         {
-            return View();
+            return RedirectToAction("Register","Home");
         }
 
         //
@@ -172,21 +153,29 @@ namespace BugTracker2.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
+                    await UserManager.AddToRoleAsync(user.Id, "None");
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
-                    return RedirectToAction("Index", "Home");
+                    string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    var emailFrom = WebConfigurationManager.AppSettings["emailfrom"];
+                    var email = new MailMessage(emailFrom, model.Email)
+                    {
+                        Subject = "Confirm your account",
+                        Body = "Please confirm your account by clicking <a href =\"" + callbackUrl + "\">here</a>",
+                        IsBodyHtml = true
+                    };
+             
+                    
+                    return RedirectToAction("ConfirmationSent", "Account");
                 }
                 AddErrors(result);
             }
 
             // If we got this far, something failed, redisplay form
-            return View(model);
+            return RedirectToAction("Register", "Home");
         }
 
         //

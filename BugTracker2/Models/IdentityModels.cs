@@ -23,6 +23,14 @@ namespace BugTracker2.Models
                 return $"{LastName}, {FirstName}";
             }
         }
+        [NotMapped]
+        public string FullNameWithEmail
+        {
+        get
+            {
+                return $"{FullName}, {Email}";
+            }
+        }
 
         //nav
         public virtual ICollection<Project> Projects { get; set; }

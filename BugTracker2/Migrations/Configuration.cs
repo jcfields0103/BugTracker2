@@ -90,6 +90,34 @@ namespace BugTracker2.Migrations
                     DisplayName = "Project Manager"
                 }, "Abc&123!");
             }
+
+            context.Projects.AddOrUpdate(p => p.Name,
+                    new Project { Name = "Portfolio", Description = "My 1st Project, The Portfolio Website", Created = DateTime.Now },
+                    new Project { Name = "My Blog", Description = "My 2nd Project, The Blog Website", Created = DateTime.Now },                    
+                    new Project { Name = "Bug Tracker", Description = "My 3rd Project, The Bug Tracker Website", Created = DateTime.Now });
+            context.TicketPriorities.AddOrUpdate(t => t.Name,
+                    new TicketPriority { Name = "Immediate", Description = "Highest level, requires immediate action" },
+                    new TicketPriority { Name = "High", Description = "High priority, requires quick action" },
+                    new TicketPriority { Name = "Moderate", Description = "Medium priority, requires action" },
+                    new TicketPriority { Name = "Low", Description = "Low priority, requires action once all other priorities are completed" },
+                    new TicketPriority { Name = "None", Description = "No Action required" });
+            context.TicketStatuses.AddOrUpdate(t => t.Name,
+                    new TicketStatus { Name = "Unassigned", Description = "" },
+                    new TicketStatus { Name = "New/Unassigned", Description = "" },
+                    new TicketStatus { Name = "Assigned", Description = "" },
+                    new TicketStatus { Name = "In Progress", Description = "" },
+                    new TicketStatus { Name = "Completed", Description = "" },
+                    new TicketStatus { Name = "Archived", Description = "" });
+            context.TicketTypes.AddOrUpdate(t => t.Name,
+                    new TicketType { Name = "Bug", Description = "An error has occured that resulted in either the application crashing or the user seeing error information" },
+                    new TicketType { Name = "Defect", Description = "AN error has occured that resulted in either a miscalculation or an incorrect workflow" },
+                    new TicketType { Name = "Feature Request", Description = "A client has asked for new functionality in an application" },
+                    new TicketType { Name = "Documentation Request", Description = "A client has called in asking for new documentation to be created for the existing application" },
+                    new TicketType { Name = "Training Request", Description = "Client Asking to schedule training session" },
+                    new TicketType { Name = "Complaint", Description = "A client has called in to make a general complaint about the application" },
+                    new TicketType { Name = "Other", Description = "A call ahas been recieved that requires a follow up but is outside normal paramaters for a request" });
+
+
             var adminId = userManager.FindByEmail("jcfields@Mailinator.com").Id;
             userManager.AddToRole(adminId, "Admin");
 
